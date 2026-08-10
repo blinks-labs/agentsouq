@@ -10,7 +10,7 @@
 - **Circle Developer Account email:** nabsarkar@gmail.com *(confirm this is the console.circle.com email)*
 - **Circle products used on Arc:** USDC ✓, Wallets ✓, Nanopayments (conceptual — per-call cent-level pricing), Gateway/CCTP (roadmap, documented in README)
 - **GitHub repo:** https://github.com/nabaruns/agentsouq *(push before submitting)*
-- **Demo URL:** *(Vercel URL from `scripts/deploy-vercel.sh`)*
+- **Demo URL:** https://agentsouq.vercel.app ✓ (deployed, e2e verified with live settlements)
 - **Video:** *(record per script below, upload to YouTube unlisted/Loom)*
 - **Circle Product Feedback:** section included in README.md (required by rules — it's there, titled exactly "Circle Product Feedback")
 
