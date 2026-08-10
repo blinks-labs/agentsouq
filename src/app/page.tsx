@@ -17,6 +17,8 @@ type Balance = { label: string; address: string; usdc: string };
 type Receipt = { id: string; serviceId: string; seller: string; amountUnits: string; txHash: string; at: number };
 type CatalogItem = { id: string; seller: string; category: string; price: string; qualityScore: number; latencyMs: number; description: string };
 
+type Run = { id: string; task: string; ts: number; feed: FeedItem[]; deliverable: string; totalSpent?: string };
+
 type Eip1193 = { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> };
 declare global {
   interface Window {
@@ -59,7 +61,30 @@ export default function Home() {
   const [walletBalance, setWalletBalance] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [notice, setNotice] = useState("");
+  const [history, setHistory] = useState<Run[]>([]);
   const feedRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      setHistory(JSON.parse(localStorage.getItem("souq-history") ?? "[]"));
+    } catch {}
+  }, []);
+
+  function saveRun(run: Run) {
+    setHistory((h) => {
+      const next = [run, ...h].slice(0, 20);
+      try {
+        localStorage.setItem("souq-history", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }
+
+  function openRun(run: Run) {
+    setFeed(run.feed);
+    setDeliverable(run.deliverable);
+    setPhase("session");
+  }
 
   const refreshState = useCallback(async () => {
     const r = await fetch("/api/state");
@@ -121,7 +146,10 @@ export default function Home() {
 
     setPhase("session");
     setRunning(true);
-    setFeed([{ type: "user", text: task }]);
+    const localFeed: FeedItem[] = [{ type: "user", text: task }];
+    let localDeliverable = "";
+    let localSpent: string | undefined;
+    setFeed([...localFeed]);
     setDeliverable("");
     try {
       const res = await fetch("/api/agent/run", {
@@ -131,7 +159,8 @@ export default function Home() {
       });
       if (!res.ok) {
         const j = await res.json();
-        setFeed((f) => [...f, { type: "error", text: j.error ?? `HTTP ${res.status}` }]);
+        localFeed.push({ type: "error", text: j.error ?? `HTTP ${res.status}` });
+        setFeed([...localFeed]);
         return;
       }
       const reader = res.body!.getReader();
@@ -146,14 +175,21 @@ export default function Home() {
         for (const part of parts) {
           if (!part.startsWith("data: ")) continue;
           const ev: FeedItem = JSON.parse(part.slice(6));
-          if (ev.type === "deliverable") setDeliverable(ev.text ?? "");
-          else setFeed((f) => [...f, ev]);
+          if (ev.type === "deliverable") {
+            localDeliverable = ev.text ?? "";
+            setDeliverable(localDeliverable);
+          } else {
+            localFeed.push(ev);
+            setFeed([...localFeed]);
+          }
           if (ev.type === "payment") refreshState();
+          if (ev.type === "done") localSpent = ev.totalSpent;
         }
       }
     } finally {
       setRunning(false);
       refreshState();
+      saveRun({ id: `${Date.now()}`, task, ts: Date.now(), feed: localFeed, deliverable: localDeliverable, totalSpent: localSpent });
     }
   }
 
@@ -217,6 +253,21 @@ export default function Home() {
               </div>
             ))}
           </div>
+
+          {history.length > 0 && (
+            <div className="history">
+              <h4>Recent runs</h4>
+              {history.slice(0, 5).map((r) => (
+                <button key={r.id} className="hist-item" onClick={() => openRun(r)}>
+                  <span className="hist-task">{r.task}</span>
+                  <span className="meta">
+                    {new Date(r.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    {r.totalSpent ? ` · ${r.totalSpent}` : ""}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <footer>Arc testnet · native USDC + EIP-3009 · Circle Wallets · x402 · testnet demo</footer>
       </main>
@@ -250,6 +301,20 @@ export default function Home() {
           )}
           {running && <div className="msg msg-status pulse">working…</div>}
         </div>
+        {history.length > 0 && (
+          <div className="chat-history">
+            <h4>History</h4>
+            {history.slice(0, 8).map((r) => (
+              <button key={r.id} className="hist-item" onClick={() => openRun(r)} disabled={running}>
+                <span className="hist-task">{r.task}</span>
+                <span className="meta">
+                  {new Date(r.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {r.totalSpent ? ` · ${r.totalSpent}` : ""}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
         <button className="newrun" onClick={() => setPhase("new")} disabled={running}>
           + New task
         </button>

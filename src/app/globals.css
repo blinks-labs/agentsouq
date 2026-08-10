@@ -160,6 +160,41 @@ a:hover { text-decoration: underline; }
 
 .hero footer { text-align: center; color: var(--dim); font-size: 0.75rem; padding: 18px; }
 
+.history { width: 100%; max-width: 680px; margin-top: 34px; }
+.history h4, .chat-history h4 {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--dim);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.hist-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--dim);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 9px 4px;
+  cursor: pointer;
+  text-align: left;
+}
+.hist-item:hover { color: var(--text); background: var(--bg-raise); }
+.hist-task {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.hist-item .meta { white-space: nowrap; }
+.chat-history { padding: 10px 16px 0; border-top: 1px solid var(--border); max-height: 200px; overflow-y: auto; }
+
 /* ───────────── session: chat + artifacts ───────────── */
 
 .session {

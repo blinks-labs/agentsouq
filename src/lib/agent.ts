@@ -23,9 +23,10 @@ function hasLlm(): boolean {
   return Boolean(process.env.OPENROUTER_API_KEY);
 }
 
-async function llm(system: string, user: string, json: boolean): Promise<string> {
+async function llmOnce(system: string, user: string, jsonMode: boolean): Promise<string> {
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
+    signal: AbortSignal.timeout(75_000),
     headers: {
       Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
@@ -35,7 +36,7 @@ async function llm(system: string, user: string, json: boolean): Promise<string>
     body: JSON.stringify({
       model: MODEL,
       max_tokens: 2000,
-      ...(json ? { response_format: { type: "json_object" } } : {}),
+      ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
@@ -44,8 +45,24 @@ async function llm(system: string, user: string, json: boolean): Promise<string>
   });
   const body = await res.json();
   if (!res.ok) throw new Error(`LLM error: ${body.error?.message ?? res.status}`);
-  let text: string = body.choices?.[0]?.message?.content ?? "";
-  if (json) text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  const msg = body.choices?.[0]?.message ?? {};
+  // some providers put a reasoning model's answer in `reasoning` with empty `content`
+  return msg.content || msg.reasoning || "";
+}
+
+async function llm(system: string, user: string, json: boolean): Promise<string> {
+  let text: string;
+  try {
+    text = await llmOnce(system, user, json);
+  } catch {
+    // retry once without json response_format (some providers stall on it)
+    text = await llmOnce(system, user, false);
+  }
+  if (json) {
+    text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+    const start = text.indexOf("{");
+    if (start > 0) text = text.slice(start, text.lastIndexOf("}") + 1);
+  }
   return text;
 }
 
@@ -54,9 +71,7 @@ async function plan(task: string, budgetUnits: bigint, emit: Emit): Promise<{ se
     (s) => `- id=${s.id} seller=${s.seller} category=${s.category} price=${formatUsdc(s.priceUnits)} quality=${s.qualityScore} latency=${s.latencyMs}ms — ${s.description}`,
   ).join("\n");
 
-  if (!hasLlm()) {
-    // Deterministic fallback: cheapest per needed category, budget-capped
-    emit({ type: "thinking", text: "No LLM key configured — using deterministic planner: pick best value per category within budget." });
+  const deterministic = () => {
     const byCategory = new Map<string, Service>();
     for (const s of [...CATALOG].sort((a, b) => Number(a.priceUnits - b.priceUnits))) {
       if (!byCategory.has(s.category)) byCategory.set(s.category, s);
@@ -70,19 +85,32 @@ async function plan(task: string, budgetUnits: bigint, emit: Emit): Promise<{ se
       }
     }
     return picks;
+  };
+
+  if (!hasLlm()) {
+    emit({ type: "thinking", text: "No LLM key configured — using deterministic planner: pick best value per category within budget." });
+    return deterministic();
   }
 
-  const text = await llm(
-    "You are a procurement agent in AgentSouq, a marketplace on Arc testnet where services are paid per-call in USDC. " +
-      "Given a task, a budget, and a catalog, decide which services to purchase. Weigh price against quality and latency — " +
-      "cheaper is not always better if quality matters for the task. Never exceed the budget. Buy at most one service per category. " +
-      'Respond with ONLY a JSON object: {"rationale": string, "purchases": [{"serviceId": string, "reason": string}]}',
-    `Task: ${task}\nBudget: ${formatUsdc(budgetUnits)} USDC total\n\nCatalog:\n${catalogText}\n\nDecide what to buy.`,
-    true,
-  );
-  const parsed = JSON.parse(text);
-  emit({ type: "thinking", text: parsed.rationale ?? "Plan formed." });
-  return parsed.purchases ?? [];
+  emit({ type: "status", text: "Planner is weighing counterparties, prices, and the budget… (can take up to a minute)" });
+  try {
+    const text = await llm(
+      "You are a procurement agent in AgentSouq, a marketplace on Arc testnet where services are paid per-call in USDC. " +
+        "Given a task, a budget, and a catalog, decide which services to purchase. Weigh price against quality and latency — " +
+        "cheaper is not always better if quality matters for the task. Never exceed the budget. Buy at most one service per category. " +
+        'Respond with ONLY a JSON object: {"rationale": string, "purchases": [{"serviceId": string, "reason": string}]}',
+      `Task: ${task}\nBudget: ${formatUsdc(budgetUnits)} USDC total\n\nCatalog:\n${catalogText}\n\nDecide what to buy.`,
+      true,
+    );
+    const parsed = JSON.parse(text);
+    const purchases = (parsed.purchases ?? []).filter((p: { serviceId?: string }) => CATALOG.some((s) => s.id === p.serviceId));
+    if (purchases.length === 0) throw new Error("empty plan");
+    emit({ type: "thinking", text: parsed.rationale ?? "Plan formed." });
+    return purchases;
+  } catch {
+    emit({ type: "thinking", text: "Planner response was unusable — falling back to best-value picks within budget." });
+    return deterministic();
+  }
 }
 
 async function buy(service: Service, baseUrl: string, emit: Emit): Promise<{ data: unknown; txHash: string }> {
