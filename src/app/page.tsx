@@ -56,6 +56,7 @@ export default function Home() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [wallet, setWallet] = useState<string | null>(null);
+  const [walletBalance, setWalletBalance] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const feedRef = useRef<HTMLDivElement>(null);
 
@@ -84,6 +85,24 @@ export default function Home() {
     setWallet(accounts[0] ?? null);
     setNotice("");
   }
+
+  function disconnect() {
+    setWallet(null);
+    setWalletBalance(null);
+  }
+
+  // connected wallet's USDC balance on Arc testnet (USDC is the native token)
+  useEffect(() => {
+    if (!wallet) return;
+    fetch("https://rpc.testnet.arc.io", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getBalance", params: [wallet, "latest"] }),
+    })
+      .then((r) => r.json())
+      .then((j) => setWalletBalance((Number(BigInt(j.result)) / 1e18).toFixed(2)))
+      .catch(() => setWalletBalance(null));
+  }, [wallet]);
 
   async function dispatch() {
     setNotice("");
@@ -141,10 +160,16 @@ export default function Home() {
     }
   }
 
-  const walletChip = (
-    <button className="chip" onClick={connect}>
-      {wallet ? `⬡ ${short(wallet)}` : "⬡ Connect wallet"}
-    </button>
+  const walletChip = wallet ? (
+    <span className="wallet-group">
+      <span className="chip chip-static" title={wallet}>
+        ⬡ {short(wallet)}
+        {walletBalance !== null && <span className="bal">{walletBalance} USDC</span>}
+      </span>
+      <button className="chip chip-x" onClick={disconnect} title="Disconnect">✕</button>
+    </span>
+  ) : (
+    <button className="chip" onClick={connect}>⬡ Connect wallet</button>
   );
 
   /* ─────────── new-session view: centered composer ─────────── */

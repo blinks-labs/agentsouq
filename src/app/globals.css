@@ -129,6 +129,11 @@ a:hover { text-decoration: underline; }
   cursor: pointer;
 }
 .chip:hover { border-color: var(--saffron); }
+.wallet-group { display: inline-flex; gap: 6px; align-items: center; }
+.chip-static { cursor: default; display: inline-flex; align-items: center; gap: 10px; }
+.bal { color: var(--mint); font-family: var(--font-mono), monospace; font-size: 0.8rem; }
+.chip-x { padding: 7px 11px; color: var(--dim); }
+.chip-x:hover { color: var(--clay); border-color: var(--clay); }
 
 .notice { color: var(--clay); margin-top: 14px; font-size: 0.9rem; text-align: center; }
 .fineprint { color: var(--dim); font-size: 0.78rem; margin-top: 14px; }
