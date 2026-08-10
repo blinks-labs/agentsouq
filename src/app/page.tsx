@@ -57,6 +57,7 @@ export default function Home() {
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [wallet, setWallet] = useState<string | null>(null);
   const [walletBalance, setWalletBalance] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [notice, setNotice] = useState("");
   const feedRef = useRef<HTMLDivElement>(null);
 
@@ -91,16 +92,12 @@ export default function Home() {
     setWalletBalance(null);
   }
 
-  // connected wallet's USDC balance on Arc testnet (USDC is the native token)
+  // connected wallet's USDC balance on Arc testnet (proxied server-side; RPC blocks browser CORS)
   useEffect(() => {
     if (!wallet) return;
-    fetch("https://rpc.testnet.arc.io", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "eth_getBalance", params: [wallet, "latest"] }),
-    })
+    fetch(`/api/balance/${wallet}`)
       .then((r) => r.json())
-      .then((j) => setWalletBalance((Number(BigInt(j.result)) / 1e18).toFixed(2)))
+      .then((j) => setWalletBalance(j.usdc ?? null))
       .catch(() => setWalletBalance(null));
   }, [wallet]);
 
@@ -160,12 +157,20 @@ export default function Home() {
     }
   }
 
+  async function copyAddress() {
+    if (!wallet) return;
+    await navigator.clipboard.writeText(wallet).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
   const walletChip = wallet ? (
     <span className="wallet-group">
       <span className="chip chip-static" title={wallet}>
         ⬡ {short(wallet)}
-        {walletBalance !== null && <span className="bal">{walletBalance} USDC</span>}
+        <span className="bal">{walletBalance ?? "…"} USDC</span>
       </span>
+      <button className="chip chip-x" onClick={copyAddress} title="Copy address">{copied ? "✓" : "⧉"}</button>
       <button className="chip chip-x" onClick={disconnect} title="Disconnect">✕</button>
     </span>
   ) : (
