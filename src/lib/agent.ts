@@ -29,6 +29,8 @@ async function llm(system: string, user: string, json: boolean): Promise<string>
     headers: {
       Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
+      "HTTP-Referer": "https://cruq.ai",
+      "X-Title": "Cruq AI",
     },
     body: JSON.stringify({
       model: MODEL,
