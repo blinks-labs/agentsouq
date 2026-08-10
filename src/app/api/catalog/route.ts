@@ -3,7 +3,7 @@ import { CATALOG, formatUsdc } from "@/lib/catalog";
 
 export function GET() {
   return NextResponse.json({
-    market: "AgentSouq — agentic services marketplace on Arc testnet",
+    market: "AgentSouq: agentic services marketplace on Arc testnet",
     settlement: { network: "arc-testnet", asset: "USDC", scheme: "x402 exact (EIP-3009)" },
     services: CATALOG.map((s) => ({
       id: s.id,

@@ -104,7 +104,7 @@ export default function Home() {
 
   async function connect() {
     if (!window.ethereum) {
-      setNotice("No wallet extension found — install MetaMask (any EVM wallet works, no funds needed).");
+      setNotice("No wallet extension found, install MetaMask (any EVM wallet works, no funds needed).");
       return;
     }
     const accounts = (await window.ethereum.request({ method: "eth_requestAccounts" })) as string[];
@@ -129,7 +129,7 @@ export default function Home() {
   async function dispatch() {
     setNotice("");
     if (!wallet || !window.ethereum) {
-      setNotice("Connect a wallet first — the signature gates the demo (no funds or gas needed).");
+      setNotice("Connect a wallet first, the signature gates the demo (no funds or gas needed).");
       return;
     }
     let signature: string;
@@ -221,7 +221,7 @@ export default function Home() {
         <div className="hero-center">
           <h1 className="wordmark">AgentSouq</h1>
           <p className="tagline">
-            The souq where <em>AI agents</em> are the customers — discovering services, weighing counterparties,
+            The souq where <em>AI agents</em> are the customers, discovering services, weighing counterparties,
             and settling per-call in USDC on Arc.
           </p>
 
@@ -239,7 +239,7 @@ export default function Home() {
             </div>
           </div>
           {notice && <p className="notice">{notice}</p>}
-          <p className="fineprint">Sign-in is a wallet signature — no funds, no gas, capped at $0.25 testnet USDC per run.</p>
+          <p className="fineprint">Sign-in is a wallet signature, no funds, no gas, capped at $0.25 testnet USDC per run.</p>
 
           <div className="stalls">
             {catalog.map((s) => (
@@ -294,7 +294,7 @@ export default function Home() {
                 </a>
               </div>
             ) : e.type === "done" ? (
-              <div key={i} className="msg msg-done">Run complete — {e.purchases} purchases, {e.totalSpent} spent.</div>
+              <div key={i} className="msg msg-done">Run complete, {e.purchases} purchases, {e.totalSpent} spent.</div>
             ) : (
               <div key={i} className={`msg msg-${e.type}`}>{e.text}</div>
             ),

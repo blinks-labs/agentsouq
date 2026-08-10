@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>AgentSouq — Submission</title>
+<title>AgentSouq, Submission</title>
 <style>
   @page { size: A4; margin: 16mm 15mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,7 +39,7 @@
     <circle cx="32" cy="34" r="5" fill="#3fbf8f"/>
   </svg>
   <div>
-    <h1>Agent<span class="accent">Souq</span> — Agentic Commerce on Arc</h1>
+    <h1>Agent<span class="accent">Souq</span>: Agentic Commerce on Arc</h1>
     <div class="sub">The Stablecoin Commerce Stack Challenge · <b>Track 4: Best Agentic Economy Experience on Arc</b></div>
   </div>
 </header>
@@ -55,18 +55,18 @@
 <h2>What it is</h2>
 <p>
 AgentSouq is a marketplace ("souq") where <b>AI agents are the customers</b>. A buyer agent receives a task and a hard USDC budget,
-discovers priced services via <b>x402</b> (HTTP&nbsp;402) payment challenges, reasons about which counterparties to buy from —
-weighing price against quality and latency across competing sellers — signs gasless <b>EIP-3009</b> USDC authorizations with its
+discovers priced services via <b>x402</b> (HTTP&nbsp;402) payment challenges, reasons about which counterparties to buy from -
+weighing price against quality and latency across competing sellers, signs gasless <b>EIP-3009</b> USDC authorizations with its
 <b>Circle developer-controlled wallet</b>, and every purchase settles on-chain on <b>Arc testnet</b> in seconds. It demonstrates
 autonomous stablecoin-settled purchases, multi-counterparty negotiation, pay-per-call (nanopayment-scale) pricing, and
-budget-governed agent spending — the core primitives of the agentic economy. <span class="note">(Educational / testnet demo only.)</span>
+budget-governed agent spending, the core primitives of the agentic economy. <span class="note">(Educational / testnet demo only.)</span>
 </p>
 
 <h2>Why it matters for the agentic economy</h2>
 <ul>
-  <li><b>Agents negotiate with counterparties:</b> two FX providers offer the same category at different price/quality points; in live runs the LLM planner paid 2.5× more for the premium provider when the task demanded real-time pricing, and picked the budget provider when it didn't — and explains each choice.</li>
+  <li><b>Agents negotiate with counterparties:</b> two FX providers offer the same category at different price/quality points; in live runs the LLM planner paid 2.5× more for the premium provider when the task demanded real-time pricing, and picked the budget provider when it didn't, and explains each choice.</li>
   <li><b>No raw keys anywhere:</b> the agent's wallet is a Circle developer-controlled wallet; EIP-3009 typed data is signed via Circle's <code>signTypedData</code> API. The buyer never holds a private key and never pays gas.</li>
-  <li><b>One-asset economics:</b> on Arc, gas <i>is</i> USDC — sellers' settler pays cents of USDC gas, removing the classic "agent needs two tokens" bootstrapping problem.</li>
+  <li><b>One-asset economics:</b> on Arc, gas <i>is</i> USDC, sellers' settler pays cents of USDC gas, removing the classic "agent needs two tokens" bootstrapping problem.</li>
   <li><b>Cent-level pricing:</b> services cost $0.02–$0.10 per call; the identical flow supports sub-cent authorizations for high-frequency agentic payments.</li>
   <li><b>Budget governance:</b> the agent enforces a hard cap in code, reports spend, and explains skipped purchases.</li>
 </ul>
@@ -130,13 +130,13 @@ Five wallets on <code>ARC-TESTNET</code>: agent (Circle), 3 seller treasuries (C
   <tr><td>SouqData corridor market brief</td><td class="mono">$0.10</td><td class="mono">0x8b772abc9cd6f4afacb4f4ecf2886e5fabee12de42f1b9dd6652400a52230a9b</td></tr>
   <tr><td>LingoPay translation (TL/HI/AR)</td><td class="mono">$0.03</td><td class="mono">0x0a29e2c1616edcfc12fd3b3ba1b6a2a63e4120918a7795a3d08bfcd41c5265e1</td></tr>
 </table>
-<p class="note">Every dispatched run produces fresh settlements — the dashboard links each payment to its transaction. Access to the public demo is wallet-gated (any EVM wallet, signature only — no funds or gas) with per-wallet rate limits and a $0.25 hard cap per run.</p>
+<p class="note">Every dispatched run produces fresh settlements, the dashboard links each payment to its transaction. Access to the public demo is wallet-gated (any EVM wallet, signature only, no funds or gas) with per-wallet rate limits and a $0.25 hard cap per run.</p>
 
 <h2>How the x402 payment works</h2>
 <ul>
   <li>Seller replies <b>402</b> with an x402 <code>accepts</code> array: scheme <code>exact</code>, network <code>eip155:5042002</code>, price, <code>payTo</code>, asset (Arc-native USDC <code>0x3600…0000</code>, FiatToken v2).</li>
   <li>Agent builds an EIP-3009 <code>TransferWithAuthorization</code> (random 32-byte nonce, 5-min validity) and signs it through Circle Wallets.</li>
-  <li>Seller verifies signature, unused nonce (<code>authorizationState</code>), balance, amount, and window — then the settler submits <code>transferWithAuthorization</code> on-chain and serves the response with the tx hash (<code>X-PAYMENT-RESPONSE</code>).</li>
+  <li>Seller verifies signature, unused nonce (<code>authorizationState</code>), balance, amount, and window, then the settler submits <code>transferWithAuthorization</code> on-chain and serves the response with the tx hash (<code>X-PAYMENT-RESPONSE</code>).</li>
 </ul>
 
 <h2>Documentation &amp; setup</h2>
@@ -146,21 +146,21 @@ Five wallets on <code>ARC-TESTNET</code>: agent (Circle), 3 seller treasuries (C
 Run locally with <code>pnpm install &amp;&amp; pnpm dev</code> after the setup scripts.</p>
 
 <h2>Circle Product Feedback</h2>
-<p><b>Why these products:</b> we wanted an agent that holds no raw keys — Circle Wallets custody plus <code>signTypedData</code> maps
-perfectly onto EIP-3009 payment authorizations — and a chain where the settlement asset is also the gas asset (Arc), which removes
+<p><b>Why these products:</b> we wanted an agent that holds no raw keys, Circle Wallets custody plus <code>signTypedData</code> maps
+perfectly onto EIP-3009 payment authorizations, and a chain where the settlement asset is also the gas asset (Arc), which removes
 the "agent needs two tokens" bootstrapping problem.</p>
 <p><b>What worked well:</b></p>
 <ul>
   <li>Wallet creation on <code>ARC-TESTNET</code> worked first try via the SDK; entity-secret registration is fully scriptable.</li>
-  <li><code>signTypedData</code> on a developer-controlled wallet signed EIP-3009 typed data that verified on-chain with no surprises — Circle Wallets is a drop-in signer for x402/agentic payments.</li>
+  <li><code>signTypedData</code> on a developer-controlled wallet signed EIP-3009 typed data that verified on-chain with no surprises, Circle Wallets is a drop-in signer for x402/agentic payments.</li>
   <li>Arc's USDC keeps FiatToken v2's EIP-3009 intact at a well-known address, making gasless pull-payments trivial; USDC-as-gas collapses treasury logic to a single asset.</li>
   <li>Deterministic finality: <code>waitForTransactionReceipt</code> returns in ~1–2s, so payment-before-response APIs feel synchronous.</li>
 </ul>
 <p><b>What could be improved:</b></p>
 <ul>
-  <li>The faucet API (<code>POST /v1/faucet/drips</code>) returned <code>Forbidden</code> for a standard testnet key, forcing manual browser funding — programmatic faucet access for Arc would make agent demos fully scriptable.</li>
+  <li>The faucet API (<code>POST /v1/faucet/drips</code>) returned <code>Forbidden</code> for a standard testnet key, forcing manual browser funding, programmatic faucet access for Arc would make agent demos fully scriptable.</li>
   <li><code>registerEntitySecretCiphertext</code>'s <code>recoveryFileDownloadPath</code> expects a directory but errors confusingly when given a file path.</li>
-  <li>No x402 facilitator or network-registry entry for Arc yet — we implemented exact-scheme verify/settle ourselves. A Circle-hosted facilitator for Arc would cut integration to minutes.</li>
+  <li>No x402 facilitator or network-registry entry for Arc yet, we implemented exact-scheme verify/settle ourselves. A Circle-hosted facilitator for Arc would cut integration to minutes.</li>
   <li>A first-class "sign EIP-3009 payment" helper in the Wallets SDK (amount, payee, token → <code>X-PAYMENT</code> header) would make Circle Wallets the default wallet of the agentic economy.</li>
 </ul>
 <p><b>Recommendations:</b> ship an Arc x402 quickstart (facilitator + Wallets signer), expose faucet drips to standard testnet API keys,

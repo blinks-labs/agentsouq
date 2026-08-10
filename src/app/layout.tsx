@@ -7,7 +7,7 @@ const ui = Space_Grotesk({ variable: "--font-ui", subsets: ["latin"] });
 const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AgentSouq — Agentic Commerce on Arc",
+  title: "AgentSouq: Agentic Commerce on Arc",
   description:
     "AI agents that discover services, negotiate, and settle per-call in USDC on Arc testnet via x402 payments signed with Circle Wallets.",
 };
