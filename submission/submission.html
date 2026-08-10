@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AgentSouq — Submission</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif; color: #221d29; font-size: 10.3pt; line-height: 1.5; }
+  .accent { color: #c07d1c; }
+  .mint { color: #17835d; }
+  header { display: flex; align-items: center; gap: 14px; border-bottom: 3px solid #e8a13d; padding-bottom: 12px; margin-bottom: 14px; }
+  header svg { flex: 0 0 auto; }
+  h1 { font-size: 21pt; font-weight: 700; letter-spacing: -0.02em; }
+  .sub { color: #6b6375; font-size: 10.5pt; margin-top: 2px; }
+  .links { margin: 10px 0 16px; background: #faf6ee; border: 1px solid #eadfc8; border-radius: 8px; padding: 10px 14px; font-size: 10pt; }
+  .links b { display: inline-block; width: 118px; color: #6b6375; font-weight: 600; }
+  .links a { color: #b06a10; text-decoration: none; font-family: "SF Mono", Menlo, monospace; font-size: 9.3pt; }
+  h2 { font-size: 12.5pt; margin: 18px 0 7px; color: #221d29; border-left: 4px solid #e8a13d; padding-left: 9px; }
+  p { margin-bottom: 7px; }
+  ul { margin: 4px 0 8px 18px; }
+  li { margin-bottom: 3px; }
+  table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; font-size: 9.6pt; }
+  th, td { border: 1px solid #e3dccc; padding: 5px 9px; text-align: left; vertical-align: top; }
+  th { background: #faf6ee; font-weight: 600; }
+  code, .mono { font-family: "SF Mono", Menlo, monospace; font-size: 9pt; background: #f5f1e8; border-radius: 3px; padding: 0 3px; }
+  .diagram { margin: 8px 0; text-align: center; }
+  .pagebreak { page-break-before: always; }
+  .note { color: #6b6375; font-size: 9pt; }
+  .placeholder { background: #fdeaea; border: 1px dashed #d06a55; color: #a33f2d; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="52" height="52" viewBox="0 0 64 64">
+    <rect width="64" height="64" rx="14" fill="#100e14"/>
+    <path d="M32 12c-11.5 0-19 8.6-19 18.4 0 4.1 1.5 7.6 3.9 10.2L14 52h8.6l-1.9-8.2c-1.6-2.1-2.7-4.9-2.7-8.4 0-8 6-13.4 14-13.4s14 5.4 14 13.4c0 3.5-1.1 6.3-2.7 8.4L41.4 52H50l-2.9-11.4c2.4-2.6 3.9-6.1 3.9-10.2C51 20.6 43.5 12 32 12z" fill="#e8a13d"/>
+    <circle cx="32" cy="34" r="5" fill="#3fbf8f"/>
+  </svg>
+  <div>
+    <h1>Agent<span class="accent">Souq</span> — Agentic Commerce on Arc</h1>
+    <div class="sub">The Stablecoin Commerce Stack Challenge · <b>Track 4: Best Agentic Economy Experience on Arc</b></div>
+  </div>
+</header>
+
+<div class="links">
+  <div><b>Live MVP</b> <a href="https://agentsouq.vercel.app">https://agentsouq.vercel.app</a></div>
+  <div><b>Code &amp; docs</b> <a href="https://github.com/blinks-labs/agentsouq">https://github.com/blinks-labs/agentsouq</a></div>
+  <div><b>Video demo</b> <a href="VIDEO_URL">VIDEO_URL</a></div>
+  <div><b>Circle account</b> nabsarkar@gmail.com</div>
+  <div><b>Circle products</b> USDC (settlement + gas, EIP-3009) · Circle Wallets (developer-controlled) · Nanopayments (concept) · Gateway/CCTP (roadmap)</div>
+</div>
+
+<h2>What it is</h2>
+<p>
+AgentSouq is a marketplace ("souq") where <b>AI agents are the customers</b>. A buyer agent receives a task and a hard USDC budget,
+discovers priced services via <b>x402</b> (HTTP&nbsp;402) payment challenges, reasons about which counterparties to buy from —
+weighing price against quality and latency across competing sellers — signs gasless <b>EIP-3009</b> USDC authorizations with its
+<b>Circle developer-controlled wallet</b>, and every purchase settles on-chain on <b>Arc testnet</b> in seconds. It demonstrates
+autonomous stablecoin-settled purchases, multi-counterparty negotiation, pay-per-call (nanopayment-scale) pricing, and
+budget-governed agent spending — the core primitives of the agentic economy. <span class="note">(Educational / testnet demo only.)</span>
+</p>
+
+<h2>Why it matters for the agentic economy</h2>
+<ul>
+  <li><b>Agents negotiate with counterparties:</b> two FX providers offer the same category at different price/quality points; in live runs the LLM planner paid 2.5× more for the premium provider when the task demanded real-time pricing, and picked the budget provider when it didn't — and explains each choice.</li>
+  <li><b>No raw keys anywhere:</b> the agent's wallet is a Circle developer-controlled wallet; EIP-3009 typed data is signed via Circle's <code>signTypedData</code> API. The buyer never holds a private key and never pays gas.</li>
+  <li><b>One-asset economics:</b> on Arc, gas <i>is</i> USDC — sellers' settler pays cents of USDC gas, removing the classic "agent needs two tokens" bootstrapping problem.</li>
+  <li><b>Cent-level pricing:</b> services cost $0.02–$0.10 per call; the identical flow supports sub-cent authorizations for high-frequency agentic payments.</li>
+  <li><b>Budget governance:</b> the agent enforces a hard cap in code, reports spend, and explains skipped purchases.</li>
+</ul>
+
+<h2>Architecture</h2>
+<div class="diagram">
+<svg width="660" height="330" viewBox="0 0 660 330" font-family="Helvetica, Arial" font-size="11">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#c07d1c"/></marker>
+    <marker id="arrg" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#17835d"/></marker>
+  </defs>
+  <!-- actors -->
+  <g text-anchor="middle" font-weight="bold">
+    <rect x="10" y="10" width="120" height="34" rx="7" fill="#100e14"/><text x="70" y="31" fill="#ece5d8">User</text>
+    <rect x="170" y="10" width="140" height="34" rx="7" fill="#e8a13d"/><text x="240" y="31" fill="#171310">Buyer Agent (LLM)</text>
+    <rect x="350" y="10" width="130" height="34" rx="7" fill="#100e14"/><text x="415" y="31" fill="#ece5d8">Seller APIs (x402)</text>
+    <rect x="520" y="10" width="130" height="34" rx="7" fill="#17835d"/><text x="585" y="31" fill="#fff">Arc Testnet · USDC</text>
+  </g>
+  <!-- lifelines -->
+  <g stroke="#d8d0c0" stroke-dasharray="4 4">
+    <line x1="70" y1="44" x2="70" y2="320"/><line x1="240" y1="44" x2="240" y2="320"/>
+    <line x1="415" y1="44" x2="415" y2="320"/><line x1="585" y1="44" x2="585" y2="320"/>
+  </g>
+  <!-- messages -->
+  <g stroke="#c07d1c" stroke-width="1.6">
+    <line x1="70" y1="70" x2="236" y2="70" marker-end="url(#arr)"/>
+    <line x1="240" y1="100" x2="411" y2="100" marker-end="url(#arr)"/>
+    <line x1="415" y1="128" x2="244" y2="128" marker-end="url(#arr)"/>
+    <line x1="240" y1="186" x2="411" y2="186" marker-end="url(#arr)"/>
+    <line x1="240" y1="298" x2="74" y2="298" marker-end="url(#arr)"/>
+  </g>
+  <g stroke="#17835d" stroke-width="1.6">
+    <line x1="415" y1="214" x2="581" y2="214" marker-end="url(#arrg)"/>
+    <line x1="585" y1="242" x2="419" y2="242" marker-end="url(#arrg)"/>
+    <line x1="415" y1="270" x2="244" y2="270" marker-end="url(#arrg)"/>
+  </g>
+  <g fill="#221d29">
+    <text x="80" y="64">task + budget (USDC)</text>
+    <text x="250" y="94">GET service (no payment)</text>
+    <text x="250" y="122">HTTP 402 · price, payTo, asset</text>
+    <text x="250" y="152" font-style="italic" fill="#6b6375">plan: price vs quality vs budget → sign EIP-3009</text>
+    <text x="250" y="166" font-style="italic" fill="#6b6375">via Circle Wallets signTypedData (no raw keys)</text>
+    <text x="250" y="180">retry + X-PAYMENT header</text>
+    <text x="425" y="208">verify sig · nonce · balance → settle</text>
+    <text x="425" y="236">transferWithAuthorization ✓ (~1s finality)</text>
+    <text x="250" y="264">data + settlement tx hash</text>
+    <text x="80" y="292">deliverable + receipts (Arcscan)</text>
+  </g>
+</svg>
+</div>
+<p class="note">Single Next.js app: buyer agent (<code>src/lib/agent.ts</code>, DeepSeek via OpenRouter), Circle Wallets signer (<code>src/lib/circle.ts</code>),
+x402 verify/settle engine (<code>src/lib/payments.ts</code>), four paid seller endpoints across three sellers, and a chat + artifacts dashboard.
+Five wallets on <code>ARC-TESTNET</code>: agent (Circle), 3 seller treasuries (Circle), settler EOA (pays USDC gas).</p>
+
+<div class="pagebreak"></div>
+
+<h2>Live on-chain proof (Arc testnet)</h2>
+<table>
+  <tr><th>Purchase</th><th>Amount</th><th>Settlement tx (testnet.arcscan.app)</th></tr>
+  <tr><td>FastFX real-time FX quotes</td><td class="mono">$0.05</td><td class="mono">0x95fadffd20d77bb0ba869162aea5bc59402f232c5618612bde52d3ec5031648b</td></tr>
+  <tr><td>SouqData corridor market brief</td><td class="mono">$0.10</td><td class="mono">0x8b772abc9cd6f4afacb4f4ecf2886e5fabee12de42f1b9dd6652400a52230a9b</td></tr>
+  <tr><td>LingoPay translation (TL/HI/AR)</td><td class="mono">$0.03</td><td class="mono">0x0a29e2c1616edcfc12fd3b3ba1b6a2a63e4120918a7795a3d08bfcd41c5265e1</td></tr>
+</table>
+<p class="note">Every dispatched run produces fresh settlements — the dashboard links each payment to its transaction. Access to the public demo is wallet-gated (any EVM wallet, signature only — no funds or gas) with per-wallet rate limits and a $0.25 hard cap per run.</p>
+
+<h2>How the x402 payment works</h2>
+<ul>
+  <li>Seller replies <b>402</b> with an x402 <code>accepts</code> array: scheme <code>exact</code>, network <code>eip155:5042002</code>, price, <code>payTo</code>, asset (Arc-native USDC <code>0x3600…0000</code>, FiatToken v2).</li>
+  <li>Agent builds an EIP-3009 <code>TransferWithAuthorization</code> (random 32-byte nonce, 5-min validity) and signs it through Circle Wallets.</li>
+  <li>Seller verifies signature, unused nonce (<code>authorizationState</code>), balance, amount, and window — then the settler submits <code>transferWithAuthorization</code> on-chain and serves the response with the tx hash (<code>X-PAYMENT-RESPONSE</code>).</li>
+</ul>
+
+<h2>Documentation &amp; setup</h2>
+<p>Full documentation lives in the repository README: environment setup, one-command Circle wallet provisioning scripts
+(<code>circle-setup.mjs</code> registers the entity secret and creates the wallet set + agent wallet on <code>ARC-TESTNET</code>;
+<code>create-wallets.mjs</code> creates seller treasuries), faucet funding, the x402 flow in detail, and the architecture diagram in mermaid.
+Run locally with <code>pnpm install &amp;&amp; pnpm dev</code> after the setup scripts.</p>
+
+<h2>Circle Product Feedback</h2>
+<p><b>Why these products:</b> we wanted an agent that holds no raw keys — Circle Wallets custody plus <code>signTypedData</code> maps
+perfectly onto EIP-3009 payment authorizations — and a chain where the settlement asset is also the gas asset (Arc), which removes
+the "agent needs two tokens" bootstrapping problem.</p>
+<p><b>What worked well:</b></p>
+<ul>
+  <li>Wallet creation on <code>ARC-TESTNET</code> worked first try via the SDK; entity-secret registration is fully scriptable.</li>
+  <li><code>signTypedData</code> on a developer-controlled wallet signed EIP-3009 typed data that verified on-chain with no surprises — Circle Wallets is a drop-in signer for x402/agentic payments.</li>
+  <li>Arc's USDC keeps FiatToken v2's EIP-3009 intact at a well-known address, making gasless pull-payments trivial; USDC-as-gas collapses treasury logic to a single asset.</li>
+  <li>Deterministic finality: <code>waitForTransactionReceipt</code> returns in ~1–2s, so payment-before-response APIs feel synchronous.</li>
+</ul>
+<p><b>What could be improved:</b></p>
+<ul>
+  <li>The faucet API (<code>POST /v1/faucet/drips</code>) returned <code>Forbidden</code> for a standard testnet key, forcing manual browser funding — programmatic faucet access for Arc would make agent demos fully scriptable.</li>
+  <li><code>registerEntitySecretCiphertext</code>'s <code>recoveryFileDownloadPath</code> expects a directory but errors confusingly when given a file path.</li>
+  <li>No x402 facilitator or network-registry entry for Arc yet — we implemented exact-scheme verify/settle ourselves. A Circle-hosted facilitator for Arc would cut integration to minutes.</li>
+  <li>A first-class "sign EIP-3009 payment" helper in the Wallets SDK (amount, payee, token → <code>X-PAYMENT</code> header) would make Circle Wallets the default wallet of the agentic economy.</li>
+</ul>
+<p><b>Recommendations:</b> ship an Arc x402 quickstart (facilitator + Wallets signer), expose faucet drips to standard testnet API keys,
+and add webhook events for inbound <code>transferWithAuthorization</code> credits so seller treasuries can react without polling.</p>
+
+</body>
+</html>
