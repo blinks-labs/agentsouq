@@ -23,13 +23,13 @@
 "Here's the marketplace: three sellers, four services — FX quotes from two competing providers at different price and quality points, a market-intelligence brief, and a translation service. Each seller's treasury is a Circle developer-controlled wallet on Arc. Prices are per-call: two to ten cents. This is nanopayment-scale commerce no card network could clear."
 
 **[0:50–1:40] Dispatch the agent.** *(type task, budget $0.25, click Dispatch; narrate the live feed)*
-"I give the buyer agent a task — a remittance intelligence brief for a UAE fintech — and a hard budget of 25 cents. Watch the feed: the agent hits each API and gets an HTTP 402 payment challenge — the x402 protocol. Claude reasons about which counterparties to buy from — notice it weighs FastFX's premium real-time quotes against SouqData's cheaper delayed ones. Then, for each purchase, it signs an EIP-3009 USDC authorization through Circle Wallets — the agent never touches a private key, Circle's signTypedData API does the signing. The seller verifies the signature and settles it on Arc."
+"I give the buyer agent a task — a remittance intelligence brief for a UAE fintech — and a hard budget of 25 cents. Watch the feed: the agent hits each API and gets an HTTP 402 payment challenge — the x402 protocol. The agent's LLM planner reasons about which counterparties to buy from — notice it weighs FastFX's premium real-time quotes against SouqData's cheaper delayed ones, and pays 2.5× more for FastFX because the task demands real-time pricing. Then, for each purchase, it signs an EIP-3009 USDC authorization through Circle Wallets — the agent never touches a private key, Circle's signTypedData API does the signing. The seller verifies the signature and settles it on Arc."
 
 **[1:40–2:10] Proof on-chain.** *(click an Arcscan tx link; show wallet balances panel)*
 "Every payment is a real transferWithAuthorization on Arc's native USDC contract — here's the transaction on Arcscan, settled with deterministic finality in about a second. Back on the dashboard, the seller treasuries' balances just went up, the agent's went down, all within budget — and the agent explains any purchase it skipped."
 
 **[2:10–2:30] Close.** *(show deliverable)*
-"The agent composes the final deliverable from the data it bought, with receipts. Stack: Arc testnet, native USDC with EIP-3009, Circle developer-controlled wallets for agent key management, x402 payment flows, and Claude for the reasoning. AgentSouq — the agentic economy, settled on Arc."
+"The agent composes the final deliverable from the data it bought, with receipts. Stack: Arc testnet, native USDC with EIP-3009, Circle developer-controlled wallets for agent key management, x402 payment flows, and an LLM planner for the reasoning. AgentSouq — the agentic economy, settled on Arc."
 
 ## Pre-submission checklist
 

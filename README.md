@@ -23,7 +23,7 @@ AgentSouq is a marketplace ("souq") where **AI agents buy services from other ag
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant A as Buyer Agent (Claude)
+    participant A as Buyer Agent (LLM)
     participant CW as Circle Wallets API
     participant S as Seller service (x402)
     participant Arc as Arc Testnet (USDC)
@@ -46,7 +46,7 @@ sequenceDiagram
 
 | Piece | Where | What it does |
 |---|---|---|
-| Buyer agent | `src/lib/agent.ts` | Claude-powered planner + budget enforcement + purchase loop (deterministic fallback if no LLM key) |
+| Buyer agent | `src/lib/agent.ts` | LLM planner (DeepSeek via OpenRouter) + budget enforcement + purchase loop (deterministic fallback if no LLM key) |
 | Circle Wallets signer | `src/lib/circle.ts` | Agent wallet is a Circle developer-controlled wallet on `ARC-TESTNET`; EIP-3009 authorizations are signed via `signTypedData` — the agent never touches a private key |
 | x402 payment engine | `src/lib/payments.ts` | 402 challenges, signature/balance/nonce verification, on-chain settlement via `transferWithAuthorization` |
 | Seller services | `src/app/api/services/[id]` | 4 paid endpoints across 3 sellers (FX quotes ×2 competing providers, market brief, translation), each with its own Circle wallet treasury |
@@ -87,7 +87,8 @@ Fund the **agent wallet** and **settler** with Arc testnet USDC at <https://fauc
 | `CIRCLE_WALLET_SET_ID`, `CIRCLE_AGENT_WALLET_ID`, `CIRCLE_AGENT_WALLET_ADDRESS` | written by setup script |
 | `CIRCLE_SELLER_{FASTFX,SOUQDATA,LINGO}_{ID,ADDRESS}` | written by `create-wallets.mjs` |
 | `SETTLER_PRIVATE_KEY`, `SETTLER_ADDRESS` | written by `gen-settler.mjs` |
-| `ANTHROPIC_API_KEY` | optional — enables Claude-powered planning/synthesis (deterministic fallback otherwise) |
+| `OPENROUTER_API_KEY` | optional — enables LLM planning/synthesis (deterministic fallback otherwise) |
+| `OPENROUTER_MODEL` | optional — defaults to `deepseek/deepseek-v4-flash-0731` |
 
 ### Arc testnet reference
 
