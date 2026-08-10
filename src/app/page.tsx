@@ -1,17 +1,53 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { signMessageFor } from "@/lib/guard";
 
-type FeedItem = { type: string; text?: string; seller?: string; amount?: string; txHash?: string; serviceId?: string; totalSpent?: string; purchases?: number };
+type FeedItem = {
+  type: string;
+  text?: string;
+  seller?: string;
+  amount?: string;
+  txHash?: string;
+  serviceId?: string;
+  totalSpent?: string;
+  purchases?: number;
+};
 type Balance = { label: string; address: string; usdc: string };
-type Receipt = { id: string; serviceId: string; seller: string; from: string; to: string; amountUnits: string; txHash: string; at: number };
+type Receipt = { id: string; serviceId: string; seller: string; amountUnits: string; txHash: string; at: number };
 type CatalogItem = { id: string; seller: string; category: string; price: string; qualityScore: number; latencyMs: number; description: string };
+
+type Eip1193 = { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> };
+declare global {
+  interface Window {
+    ethereum?: Eip1193;
+  }
+}
 
 const EXPLORER = "https://testnet.arcscan.app";
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
+const toHex = (s: string) => "0x" + Array.from(new TextEncoder().encode(s), (b) => b.toString(16).padStart(2, "0")).join("");
+
+const DEFAULT_TASK =
+  "Prepare a remittance intelligence brief for a UAE fintech: real-time FX quotes AED to PHP and INR for a live pricing engine, corridor insights, and a customer summary in Tagalog and Hindi.";
+
+// tiny markdown renderer for the deliverable (headings, bold, bullets)
+function Md({ text }: { text: string }) {
+  const html = text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/^### (.*)$/gm, "<h4>$1</h4>")
+    .replace(/^## (.*)$/gm, "<h3>$1</h3>")
+    .replace(/^# (.*)$/gm, "<h2>$1</h2>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/^[-*] (.*)$/gm, "<li>$1</li>")
+    .replace(/(<li>[\s\S]*?<\/li>)(?!\n<li>)/g, "<ul>$1</ul>")
+    .replace(/\n{2,}/g, "<br/>");
+  return <div className="md" dangerouslySetInnerHTML={{ __html: html }} />;
+}
 
 export default function Home() {
-  const [task, setTask] = useState("Prepare a remittance intelligence brief for a UAE fintech: current FX quotes for AED to PHP and INR, corridor market insights, and a customer-facing summary translated to Tagalog and Hindi.");
+  const [phase, setPhase] = useState<"new" | "session">("new");
+  const [task, setTask] = useState(DEFAULT_TASK);
   const [budget, setBudget] = useState("0.25");
   const [running, setRunning] = useState(false);
   const [feed, setFeed] = useState<FeedItem[]>([]);
@@ -19,6 +55,8 @@ export default function Home() {
   const [balances, setBalances] = useState<Balance[]>([]);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [wallet, setWallet] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
   const feedRef = useRef<HTMLDivElement>(null);
 
   const refreshState = useCallback(async () => {
@@ -37,16 +75,49 @@ export default function Home() {
     feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
   }, [feed]);
 
-  async function run() {
+  async function connect() {
+    if (!window.ethereum) {
+      setNotice("No wallet extension found — install MetaMask (any EVM wallet works, no funds needed).");
+      return;
+    }
+    const accounts = (await window.ethereum.request({ method: "eth_requestAccounts" })) as string[];
+    setWallet(accounts[0] ?? null);
+    setNotice("");
+  }
+
+  async function dispatch() {
+    setNotice("");
+    if (!wallet || !window.ethereum) {
+      setNotice("Connect a wallet first — the signature gates the demo (no funds or gas needed).");
+      return;
+    }
+    let signature: string;
+    const ts = Date.now();
+    try {
+      signature = (await window.ethereum.request({
+        method: "personal_sign",
+        params: [toHex(signMessageFor(wallet, ts)), wallet],
+      })) as string;
+    } catch {
+      setNotice("Signature declined.");
+      return;
+    }
+
+    setPhase("session");
     setRunning(true);
-    setFeed([]);
+    setFeed([{ type: "user", text: task }]);
     setDeliverable("");
     try {
       const res = await fetch("/api/agent/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task, budget: Number(budget) }),
+        body: JSON.stringify({ task, budget: Number(budget), address: wallet, signature, ts }),
       });
+      if (!res.ok) {
+        const j = await res.json();
+        setFeed((f) => [...f, { type: "error", text: j.error ?? `HTTP ${res.status}` }]);
+        return;
+      }
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -70,119 +141,121 @@ export default function Home() {
     }
   }
 
-  return (
-    <main className="wrap">
-      <header>
-        <h1>🕌 AgentSouq</h1>
-        <p className="sub">
-          Autonomous agent commerce on <b>Arc testnet</b> — an AI agent discovers services, compares counterparties on
-          price and quality, and settles per-call in <b>USDC</b> via x402 payments signed with <b>Circle Wallets</b>.
-        </p>
-      </header>
+  const walletChip = (
+    <button className="chip" onClick={connect}>
+      {wallet ? `⬡ ${short(wallet)}` : "⬡ Connect wallet"}
+    </button>
+  );
 
-      <section className="card taskcard">
-        <label>Task for the buyer agent</label>
-        <textarea value={task} onChange={(e) => setTask(e.target.value)} rows={3} disabled={running} />
-        <div className="row">
-          <label>
-            Budget (USDC) <input value={budget} onChange={(e) => setBudget(e.target.value)} disabled={running} />
-          </label>
-          <button onClick={run} disabled={running}>
-            {running ? "Agent working…" : "▶ Dispatch agent"}
-          </button>
-        </div>
-      </section>
+  /* ─────────── new-session view: centered composer ─────────── */
+  if (phase === "new") {
+    return (
+      <main className="hero">
+        <div className="hero-top">{walletChip}</div>
+        <div className="hero-center">
+          <h1 className="wordmark">AgentSouq</h1>
+          <p className="tagline">
+            The souq where <em>AI agents</em> are the customers — discovering services, weighing counterparties,
+            and settling per-call in USDC on Arc.
+          </p>
 
-      <div className="grid">
-        <section className="card">
-          <h2>Agent activity</h2>
-          <div className="feed" ref={feedRef}>
-            {feed.length === 0 && <p className="dim">Dispatch the agent to see its reasoning and payments live.</p>}
-            {feed.map((e, i) => (
-              <div key={i} className={`evt evt-${e.type}`}>
-                {e.type === "payment" ? (
-                  <>
-                    💸 Paid <b>{e.amount}</b> to <b>{e.seller}</b> — settled on Arc:{" "}
-                    <a href={`${EXPLORER}/tx/${e.txHash}`} target="_blank" rel="noreferrer">
-                      {short(e.txHash!)}
-                    </a>
-                  </>
-                ) : e.type === "done" ? (
-                  <>✅ Done. {e.purchases} purchases, total spent {e.totalSpent}.</>
-                ) : (
-                  <>
-                    {e.type === "thinking" ? "🧠 " : e.type === "decision" ? "⚖️ " : e.type === "error" ? "⛔ " : "· "}
-                    {e.text}
-                  </>
-                )}
+          <div className="composer">
+            <textarea value={task} onChange={(e) => setTask(e.target.value)} rows={4} spellCheck={false} />
+            <div className="composer-bar">
+              <label className="budget">
+                budget&nbsp;
+                <input value={budget} onChange={(e) => setBudget(e.target.value)} />
+                &nbsp;USDC
+              </label>
+              <button className="go" onClick={dispatch} disabled={running}>
+                Dispatch agent ↵
+              </button>
+            </div>
+          </div>
+          {notice && <p className="notice">{notice}</p>}
+          <p className="fineprint">Sign-in is a wallet signature — no funds, no gas, capped at $0.25 testnet USDC per run.</p>
+
+          <div className="stalls">
+            {catalog.map((s) => (
+              <div key={s.id} className="stall">
+                <div className="stall-head">
+                  <span className="seller">{s.seller}</span>
+                  <span className="price">{s.price}</span>
+                </div>
+                <p>{s.description}</p>
+                <span className="meta">quality {s.qualityScore} · {s.latencyMs}ms</span>
               </div>
             ))}
           </div>
-          {deliverable && (
-            <div className="deliverable">
-              <h3>📦 Deliverable</h3>
-              <pre>{deliverable}</pre>
-            </div>
-          )}
-        </section>
-
-        <div className="col">
-          <section className="card">
-            <h2>Souq catalog</h2>
-            {catalog.map((s) => (
-              <div key={s.id} className="svc">
-                <div>
-                  <b>{s.seller}</b> <span className="tag">{s.category}</span>
-                  <div className="dim small">{s.description}</div>
-                </div>
-                <div className="price">
-                  {s.price}
-                  <div className="dim small">q {s.qualityScore} · {s.latencyMs}ms</div>
-                </div>
-              </div>
-            ))}
-          </section>
-
-          <section className="card">
-            <h2>Wallets (Circle · Arc testnet)</h2>
-            {balances.map((b) => (
-              <div key={b.address} className="svc">
-                <div>
-                  <b>{b.label}</b>
-                  <div className="dim small">
-                    <a href={`${EXPLORER}/address/${b.address}`} target="_blank" rel="noreferrer">{short(b.address)}</a>
-                  </div>
-                </div>
-                <div className="price">{b.usdc} USDC</div>
-              </div>
-            ))}
-          </section>
-
-          <section className="card">
-            <h2>Settlements on Arc</h2>
-            {receipts.length === 0 && <p className="dim">No settlements yet.</p>}
-            {receipts.map((r) => (
-              <div key={r.id} className="svc">
-                <div>
-                  <b>{r.seller}</b> <span className="tag">{r.serviceId}</span>
-                  <div className="dim small">{new Date(r.at).toLocaleTimeString()}</div>
-                </div>
-                <div className="price">
-                  ${(Number(r.amountUnits) / 1e6).toFixed(2)}
-                  <div className="small">
-                    <a href={`${EXPLORER}/tx/${r.txHash}`} target="_blank" rel="noreferrer">tx ↗</a>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </section>
         </div>
-      </div>
+        <footer>Arc testnet · native USDC + EIP-3009 · Circle Wallets · x402 · testnet demo</footer>
+      </main>
+    );
+  }
 
-      <footer className="dim small">
-        Built on Arc testnet · USDC (native gas + EIP-3009) · Circle Developer-Controlled Wallets · x402 &quot;exact&quot; scheme ·
-        Testnet demo only
-      </footer>
+  /* ─────────── session view: chat left, artifacts main ─────────── */
+  return (
+    <main className="session">
+      <aside className="chat">
+        <div className="chat-head">
+          <span className="wordmark-sm" onClick={() => setPhase("new")} role="button">AgentSouq</span>
+          {walletChip}
+        </div>
+        <div className="chat-feed" ref={feedRef}>
+          {feed.map((e, i) =>
+            e.type === "user" ? (
+              <div key={i} className="msg msg-user">{e.text}</div>
+            ) : e.type === "payment" ? (
+              <div key={i} className="msg msg-pay">
+                Paid <b>{e.amount}</b> → {e.seller}
+                <a href={`${EXPLORER}/tx/${e.txHash}`} target="_blank" rel="noreferrer" className="txlink">
+                  {short(e.txHash!)} ↗
+                </a>
+              </div>
+            ) : e.type === "done" ? (
+              <div key={i} className="msg msg-done">Run complete — {e.purchases} purchases, {e.totalSpent} spent.</div>
+            ) : (
+              <div key={i} className={`msg msg-${e.type}`}>{e.text}</div>
+            ),
+          )}
+          {running && <div className="msg msg-status pulse">working…</div>}
+        </div>
+        <button className="newrun" onClick={() => setPhase("new")} disabled={running}>
+          + New task
+        </button>
+      </aside>
+
+      <section className="artifacts">
+        <div className="art">
+          <h3>Deliverable</h3>
+          {deliverable ? <Md text={deliverable} /> : <p className="empty">The agent&apos;s composed output lands here after it finishes buying data.</p>}
+        </div>
+
+        <div className="art-row">
+          <div className="art">
+            <h3>Settlements on Arc</h3>
+            {receipts.length === 0 && <p className="empty">No settlements yet this session.</p>}
+            {receipts.map((r) => (
+              <div key={r.id} className="line">
+                <span>{r.seller} <span className="meta">{r.serviceId}</span></span>
+                <span className="num">
+                  ${(Number(r.amountUnits) / 1e6).toFixed(2)}{" "}
+                  <a href={`${EXPLORER}/tx/${r.txHash}`} target="_blank" rel="noreferrer">tx ↗</a>
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="art">
+            <h3>Wallets <span className="meta">Circle · Arc testnet</span></h3>
+            {balances.map((b) => (
+              <div key={b.address} className="line">
+                <a href={`${EXPLORER}/address/${b.address}`} target="_blank" rel="noreferrer">{b.label}</a>
+                <span className="num">{b.usdc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

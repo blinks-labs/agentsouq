@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const display = Fraunces({ variable: "--font-display", subsets: ["latin"], axes: ["opsz", "SOFT", "WONK"] });
+const ui = Space_Grotesk({ variable: "--font-ui", subsets: ["latin"] });
+const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "AgentSouq — Agentic Commerce on Arc",
@@ -20,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${display.variable} ${ui.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );
