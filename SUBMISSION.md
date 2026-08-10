@@ -9,7 +9,7 @@
 - **Track:** 4 — Best Agentic Economy Experience on Arc
 - **Circle Developer Account email:** nabsarkar@gmail.com *(confirm this is the console.circle.com email)*
 - **Circle products used on Arc:** USDC ✓, Wallets ✓, Nanopayments (conceptual — per-call cent-level pricing), Gateway/CCTP (roadmap, documented in README)
-- **GitHub repo:** https://github.com/nabaruns/agentsouq *(push before submitting)*
+- **GitHub repo:** https://github.com/blinks-labs/agentsouq ✓ (public, pushed)
 - **Demo URL:** https://agentsouq.vercel.app ✓ (deployed, e2e verified with live settlements)
 - **Video:** *(record per script below, upload to YouTube unlisted/Loom)*
 - **Circle Product Feedback:** section included in README.md (required by rules — it's there, titled exactly "Circle Product Feedback")
@@ -35,7 +35,7 @@
 
 - [ ] Wallets funded (agent + settler) via faucet.circle.com → Arc Testnet
 - [ ] End-to-end run with real settlements (tx links resolve on testnet.arcscan.app)
-- [ ] `gh repo create agentsouq --public --source . --push`
+- [ ] `# done: https://github.com/blinks-labs/agentsouq`
 - [ ] `bash scripts/deploy-vercel.sh` → paste URL above (verify a live run works on the deployed URL)
 - [ ] Record video per script (localhost or deployed URL both fine)
 - [ ] Submit form with answers above before the deadline (tonight!)
