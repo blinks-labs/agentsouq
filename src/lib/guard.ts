@@ -33,6 +33,8 @@ export async function checkAccess(input: {
 
   const now = Date.now();
   const wallet = address.toLowerCase();
+  const last = limits.perWallet.get(wallet) ?? 0;
+  if (now - last < 5 * 60_000) return { ok: false, reason: "Rate limit: one run per wallet every 5 minutes." };
 
   const ipRuns = (limits.perIp.get(ip) ?? []).filter((t) => now - t < 3_600_000);
   if (ipRuns.length >= 10) return { ok: false, reason: "Rate limit: too many runs from this network — try later." };
